@@ -46,37 +46,37 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 	function PIXINeutrinoEffect(effectModel, position, rotation, scale) {
 		_classCallCheck(this, PIXINeutrinoEffect);
 
-		var _this = _possibleConstructorReturn(this, (PIXINeutrinoEffect.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffect)).call(this));
+		var _this2 = _possibleConstructorReturn(this, (PIXINeutrinoEffect.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffect)).call(this));
 
-		_this.ctx = effectModel.ctx;
-		_this.effectModel = effectModel;
-		_this.effect = null;
+		_this2.ctx = effectModel.ctx;
+		_this2.effectModel = effectModel;
+		_this2.effect = null;
 		if (position) {
-			_this.position.set(position[0], position[1]);
-			_this.positionZ = position[2];
+			_this2.position.set(position[0], position[1]);
+			_this2.positionZ = position[2];
 		} else {
-			_this.position.set(0, 0);
-			_this.positionZ = 0;
+			_this2.position.set(0, 0);
+			_this2.positionZ = 0;
 		}
 
-		if (rotation) _this.rotation = rotation;
+		if (rotation) _this2.rotation = rotation;
 
 		if (scale) {
-			_this.scale.x = scale[0];
-			_this.scale.y = scale[1];
-			_this.scaleZ = scale[2];
-		} else _this.scaleZ = 1;
+			_this2.scale.x = scale[0];
+			_this2.scale.y = scale[1];
+			_this2.scaleZ = scale[2];
+		} else _this2.scaleZ = 1;
 
 		if (effectModel.ready()) {
-			_this._onEffectReady();
+			_this2._onEffectReady();
 		} else {
 			effectModel.once('ready', function () {
 				this._onEffectReady();
-			}, _this);
+			}, _this2);
 		}
 
-		_this._updateWorldTransform();
-		return _this;
+		_this2._updateWorldTransform();
+		return _this2;
 	}
 
 	_createClass(PIXINeutrinoEffect, [{
@@ -261,22 +261,29 @@ var PIXINeutrinoEffect = function (_PIXI$Container) {
 var PIXINeutrinoEffectModel = function (_PIXI$DisplayObject) {
 	_inherits(PIXINeutrinoEffectModel, _PIXI$DisplayObject);
 
-	function PIXINeutrinoEffectModel(context, effectPath) {
+	function PIXINeutrinoEffectModel(context, effectPath, effectLoader) {
 		_classCallCheck(this, PIXINeutrinoEffectModel);
 
-		var _this2 = _possibleConstructorReturn(this, (PIXINeutrinoEffectModel.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffectModel)).call(this));
+		var _this3 = _possibleConstructorReturn(this, (PIXINeutrinoEffectModel.__proto__ || Object.getPrototypeOf(PIXINeutrinoEffectModel)).call(this));
 
-		_this2.ctx = context;
-		_this2.effectPath = effectPath;
-		_this2.effectModel = null;
-		_this2.numTexturesToLoadLeft = -1;
-		_this2.texturesRemap = null;
+		_this3.ctx = context;
+		_this3.effectPath = effectPath;
+		_this3.effectModel = null;
+		_this3.numTexturesToLoadLeft = -1;
+		_this3.texturesRemap = null;
 
-		var pixiNeutrinoEffect = _this2;
-		_this2.ctx.neutrino.loadEffect(_this2.ctx.effectsBasePath + effectPath, function (effectModel) {
-			pixiNeutrinoEffect._onEffectLoaded(effectModel);
-		});
-		return _this2;
+		var _this = _this3;
+
+		if (effectLoader) {
+			effectLoader(_this3.ctx.effectsBasePath + effectPath, function (effectModel) {
+				_this._onEffectLoaded(effectModel);
+			});
+		} else {
+			_this3.ctx.neutrino.loadEffect(_this3.ctx.effectsBasePath + effectPath, function (effectModel) {
+				_this._onEffectLoaded(effectModel);
+			});
+		}
+		return _this3;
 	}
 
 	_createClass(PIXINeutrinoEffectModel, [{

@@ -1,6 +1,6 @@
 class PIXINeutrinoEffectModel extends PIXI.DisplayObject {
 
-	constructor(context, effectPath) {
+	constructor(context, effectPath, effectLoader) {
 		super();
 
 		this.ctx = context;
@@ -9,10 +9,17 @@ class PIXINeutrinoEffectModel extends PIXI.DisplayObject {
 		this.numTexturesToLoadLeft = -1;
 		this.texturesRemap = null;
 
-		var pixiNeutrinoEffect = this;
-		this.ctx.neutrino.loadEffect(this.ctx.effectsBasePath + effectPath, function (effectModel) {
-			pixiNeutrinoEffect._onEffectLoaded(effectModel);
-		});
+		var _this = this;
+
+		if (effectLoader) {
+			effectLoader(this.ctx.effectsBasePath + effectPath, function(effectModel) {
+				_this._onEffectLoaded(effectModel);	
+			});
+		} else {
+			this.ctx.neutrino.loadEffect(this.ctx.effectsBasePath + effectPath, function (effectModel) {
+				_this._onEffectLoaded(effectModel);
+			});
+		}
 	}
 
 	ready() {

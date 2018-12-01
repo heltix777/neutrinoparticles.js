@@ -3,6 +3,15 @@ import {PIXI, Canvas} from './node-pixi-patched'
 import path from 'path'
 import { toMatchImageSnapshot } from 'jest-image-snapshot'
 import expect from 'expect';
+import vm from 'vm';
+import assert from 'assert';
+
+function includeFile(path) {
+    vm.runInThisContext(fs.readFileSync(path))
+}
+
+includeFile('dist/neutrinoparticles.js');
+includeFile('dist-PIXI/neutrinoparticles.pixi.js');
 
 expect.extend({toMatchImageSnapshot});
 
@@ -17,19 +26,39 @@ describe ('index', function () {
         let has_error = false;
         PIXI.loader.onComplete.add(() => {
 
-            let che = new PIXI.Sprite(PIXI.loader.resources.che.texture);
+            var neutrinoContext = new PIXINeutrinoContext(app.renderer);
+            neutrinoContext.effectsBasePath = __dirname + "/export_js/";
+            neutrinoContext.texturesBasePath = __dirname + "/textures/";
 
-            // Add che to the scene we are building
-            app.stage.addChild(che);
+            function effectsLoader(p, resultCb) {
+                let effectSource = fs.readFileSync(p, 'utf-8');
+                let EffectModel = vm.runInThisContext("(function() {" + effectSource + "; return NeutrinoEffect; })()");
+                resultCb(new EffectModel(neutrinoContext.neutrino));
+            }
 
-            app.render();
+            var noiseGenerator = new neutrinoContext.neutrino.NoiseGenerator();
+            while (!noiseGenerator.step()) { // approx. 5,000 steps
+                // you can use 'noiseGenerator.progress' to get generating progress from 0.0 to 1.0
+            }
 
+            var stage = new PIXI.Container();
+
+            var testModel = new PIXINeutrinoEffectModel(neutrinoContext, "water_stream.js", effectsLoader);
+            var testEffect = new PIXINeutrinoEffect(testModel, [0, 0, 0], 0);
+            stage.addChild(testEffect);
+
+            assert.equal(testEffect.ready(), true);
+
+            testEffect.update(10);
+            
+            app.renderer.render(stage);
+            
             let image = app.view.toCanvas().toBuffer();
 
             // This will write result to the file
             fs.writeFileSync(__dirname + path.sep + 'result.png', image);
 
-            expect(image).toMatchImageSnapshot({failureThreshold: 0});
+            //expect(image).toMatchImageSnapshot({failureThreshold: 0});
         });
 
         PIXI.loader.onError.add((err) => {
